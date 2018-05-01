@@ -48,7 +48,55 @@ restaurantRouter.get('/api/v1/restaurants/:id', (request, response) => {
       }
       logger.log(logger.ERROR, '__GET_ERROR__ Returning a 500 status code');
       logger.log(logger.ERROR, error);
-      return response.sendStatus(500);
+      return undefined;
+    });
+});
+
+// GET all
+restaurantRouter.get('/api/v1/restaurants', (request, response) => {
+  logger.log(logger.INFO, 'GET ALL - processing a request for all restaurants');
+
+  return Restaurant.find()
+    .then((restaurants) => {
+      if (!restaurants) {
+        logger.log(logger.INFO, 'GET ALL - responding with a 404 status code - (!restaurants)');
+        return response.sendStatus(404);
+      }
+      logger.log(logger.INFO, 'GET ALL - responding with a 200 status code');
+      return response.json(restaurants.map(restaurant => restaurant.name));
+    })
+    .catch((error) => { // mongodb error or parsing id error
+      if (error) {
+        logger.log(logger.INFO, 'GET ALL - responding with a 404 status code');
+        response.sendStatus(404);
+      }
+      logger.log(logger.ERROR, '__GET_ALL_ERROR__ Returning a 500 status code');
+      logger.log(logger.ERROR, error);
+      return undefined;
+    });
+});
+
+restaurantRouter.delete('/api/v1/restaurants/:id', (request, response) => {
+  logger.log(logger.INFO, 'DELETE - processing a request');
+
+  return Restaurant.findByIdAndRemove(request.params.id)
+    .then((restaurant) => {
+      if (!restaurant) {
+        logger.log(logger.INFO, 'DELETE - responding with a 404 status code - (!restaurant)');
+        return response.sendStatus(404);
+      }
+      logger.log(logger.INFO, 'DELETE - responding with a 200 status code');
+      return response.json(`${restaurant.name} has been deleted`);
+    })
+    .catch((error) => { // mongodb error or parsing id error
+      if (error.message.toLowerCase().indexOf('cast to objectid failed') > -1) {
+        logger.log(logger.INFO, 'GET - responding with a 404 status code - objectId');
+        logger.log(logger.VERBOSE, `Could not parse the specific object id ${request.params.id}`);
+        response.sendStatus(404);
+      }
+      logger.log(logger.ERROR, '__GET_ERROR__ Returning a 500 status code');
+      logger.log(logger.ERROR, error);
+      return undefined;
     });
 });
 

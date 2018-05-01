@@ -9,7 +9,9 @@
     "dboff": "killall mongod"
   },
   "jest": {
-    "setupFiles": ["<rootDir>/src/__test__/lib/test.env.js"]
+    "setupFiles": [
+      "<rootDir>/src/__test__/lib/test.env.js"
+    ]
   },
   "author": "",
   "license": "ISC",
@@ -30,6 +32,7 @@
     "express": "^4.16.3",
     "faker": "^4.1.0",
     "mongoose": "^5.0.17",
+    "nodemon": "^1.17.3",
     "winston": "^3.0.0-rc5"
   }
 }

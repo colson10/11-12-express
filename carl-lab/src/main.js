@@ -1,5 +1,6 @@
-// 'use strict';
+'use strict';
 
-// const server = require('./lib/server');
+import { startServer } from './lib/server';
+import logger from './lib/logger';
 
-// server.start();
+startServer(process.env.PORT, () => logger.log(logger.INFO, `MAIN - server running on port ${process.env.PORT}`));
