@@ -4,16 +4,22 @@ import express from 'express';
 import mongoose from 'mongoose';
 import logger from './logger';
 import restaurantRoutes from '../route/restaurant-route';
+import loggerMiddleware from './logger-middleware';
+import errorMiddleware from './error-middleware';
 
 const app = express();
 let server = null;
 
-app.use(restaurantRoutes);
+app.use(loggerMiddleware); // logger middleware at the app-level
 
-app.all('*', (request, response) => {
+app.use(restaurantRoutes); // express handling our routes
+
+app.all('*', (request, response) => { // express catching all routes that are not in restaurantRoutes
   logger.log(logger.INFO, 'Returning a 404 from the catch/all default route');
   return response.sendStatus(404);
 });
+
+app.use(errorMiddleware); // error catching middleware...this is 'next'
 
 const startServer = () => {
   return mongoose.connect(process.env.MONGODB_URI)

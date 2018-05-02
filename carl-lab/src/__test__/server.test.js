@@ -15,6 +15,13 @@ const createMockRestaurant = () => {
   }).save();
 };
 
+const createManyMocks = (howManyRestaurants) => {
+  // Promise.all takes an array of promises and waits for all the promises to be done
+  return Promise.all(new Array(howManyRestaurants)
+    .fill(0)
+    .map(() => createMockRestaurant()));
+};
+
 describe('/api/v1/restaurants', () => {
   beforeAll(startServer);
   afterAll(stopServer);
@@ -62,7 +69,75 @@ describe('/api/v1/restaurants', () => {
           expect(response.body.cuisine).toEqual(restaurantToTest.cuisine);
         });
     });
-    test('should respond with 404 if there is no note to be found', () => {
+    test('should respond with 404 if there is no restaurant to be found', () => {
+      return superagent.get(`${apiURL}/ThisIsAnInvalidId`)
+        .then(Promise.reject)
+        .catch((response) => {
+          expect(response.status).toEqual(404);
+        });
+    });
+  });
+  // Get ALL
+  describe('GET ALL /api/v1/restaurants', () => {
+    test('should respond with 200 if there are no errors', () => {
+      let restaurantsToTest = null;
+      return createManyMocks(10)
+        .then((restaurants) => {
+          restaurantsToTest = restaurants;
+          return superagent.get(apiURL);
+        })
+        .then((response) => {
+          expect(response.status).toEqual(200);
+          expect(response.body).toBeTruthy();
+          expect(response.body).toHaveLength(restaurantsToTest.length);
+        });
+    });
+    test('should respond with 404 if there are no restaurants to be found', () => {
+      return superagent.get(`${apiURL}/noRestaurants`)
+        .then(Promise.reject)
+        .catch((response) => {
+          expect(response.status).toEqual(404);
+        });
+    });
+  });
+
+  describe('PUT /api/v1/restaurants', () => {
+    test('should update a restaurant and return a 200 status code', () => {
+      let restaurantToUpdate = null;
+      return createMockRestaurant()
+        .then((restaurantMock) => {
+          restaurantToUpdate = restaurantMock;
+          return superagent.put(`${apiURL}/${restaurantMock._id}`)
+            .send({ name: 'JuneBaby', location: 'Ravenna' });
+        })
+        .then((response) => {
+          expect(response.status).toEqual(200);
+          expect(response.body.name).toEqual('JuneBaby');
+          expect(response.body.location).toEqual('Ravenna');
+          expect(response.body.cuisine).toEqual(restaurantToUpdate.cuisine);
+          expect(response.body._id).toEqual(restaurantToUpdate._id.toString());
+        });
+    });
+    test('should respond with 404 if there is no restaurant to be updated', () => {
+      return superagent.get(`${apiURL}/ThisIsAnInvalidId`)
+        .then(Promise.reject)
+        .catch((response) => {
+          expect(response.status).toEqual(404);
+        });
+    });
+  });
+
+  describe('DELETE /api/v1/restaurants', () => {
+    test('should delete a restaurant and return a 200 status code', () => {
+      return createMockRestaurant()
+        .then((restaurant) => {
+          return superagent.delete(`${apiURL}/${restaurant.id}`);
+        })
+        .then((response) => {
+          expect(response.status).toEqual(204);
+        });
+    });
+    test('should respond with 404 if there is no restaurant to be deleted', () => {
       return superagent.get(`${apiURL}/ThisIsAnInvalidId`)
         .then(Promise.reject)
         .catch((response) => {
@@ -71,4 +146,3 @@ describe('/api/v1/restaurants', () => {
     });
   });
 });
-
